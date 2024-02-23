@@ -1,4 +1,4 @@
-/*Copyright 2024 M. Algazel Faizun, Miguel Knoch, Azel Mika D, Nathan H, Anamuto Eza, Hafidz Naufal
+/*Copyright 2024 M. Algazel Faizun, Miguel Knoch, Axel Mika D, Nathan H, Anamuto Eza, Hafidz Naufal
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,19 +16,24 @@ limitations under the License. */
 #include <Servo.h>
 #include <NewPing.h>
 
-enum Directions { FORWARD, LEFT, RIGHT, BACKWARDS }
+enum Directions { FORWARD = 0, LEFT = 1, RIGHT = 2, BACKWARDS = 3 };
 
 const int LMF = 5;
 const int LMB = 4;
 const int RMF = 3;
 const int RMB = 2;
 
-int[4] outputs = [LMF, LMB, RMF, RMB];
+int outputs[4] = {LMF, LMB, RMF, RMB};
 
 #define TRIG_PIN A3
 #define ECHO_PIN A2
 
-const int maxDistance = 200;
+#define MAXIMUM_DISTANCE 200
+
+// SONAR
+NewPing sonar(TRIG_PIN, ECHO_PIN, MAXIMUM_DISTANCE);
+
+// const int maxDistance = 200;
 
 bool goingForward = false;
 
@@ -36,37 +41,64 @@ int dist = 100;
 
 void setup() {
 
-  for (int i  = 0; i < outputs.length; i++) {
+  for (int i  = 0; i < sizeof(outputs); i++) {
     pinMode(outputs[i], OUTPUT);
   }
 }
 
 void loop() {
-  move(Directions.FORWARD);
+  move(FORWARD, 1000);
 }
 
-bool move(Directions directions) {
+bool move(Directions directions, int time) {
 
   switch (directions){
-    case Directions.FORWARD:
-      //Handle forward
+    case FORWARD:
+      //  Handle forward
+      digitalWrite(RMF, HIGH);
+      digitalWrite(LMF, HIGH);
+      delay(time);
       // Handle GPWS (anti collission)
+      if(readPing() <= 20) {
+        handleCollission();
+      }
       break;
-    case Directions.LEFT:
+    case LEFT:
       //Handle left
+      digitalWrite(RMF, HIGH);
+      digitalWrite(LMB, HIGH);
+      delay(time);
       break;
-    case Directions.RIGHT:
+    case RIGHT:
       //Handle right
+      digitalWrite(RMB, HIGH);
+      digitalWrite(LMF, HIGH);
+      delay(time);
       break;
-    case Directions.BACKWARDS:
+    case BACKWARDS:
       //Handle backward
+      
+      digitalWrite(RMB, HIGH);
+      digitalWrite(LMB, HIGH);
       break;
     default:
-      throw "do your wiki speedrun prompt"
+      return false;
+  }
+
+  for (int i = 0; i < sizeof(outputs); i++) {
+    digitalWrite(outputs[i], LOW);
   }
   return true;
 }
 
 bool handleCollission() {
+  int distLeft = 0;
+  int distLeft = 0;
+  //TODO: IMPLEMENT
+}
+
+int readPing() {
+  int cm = sonar.ping_cm();
+  return cm;
   
 }
